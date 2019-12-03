@@ -1,15 +1,20 @@
 import { timer } from 'http://dev.jspm.io/rxjs@6/_esm2015'
-   
+/*import { map, filter, concatMap } from 'http://dev.jspm.io/rxjs@6/_esm2015/operators'
+import { ajax } from 'http://dev.jspm.io/npm:rxjs@6.5.3/ajax/index.js'*/
+
+let warningsCache = []
+let oldTime
+
 window.onload = () => showWarningData()
 
-let t = timer(1000, 2000)
+let t = timer(5000, 5000)
 t.subscribe(() => {
     let update = document.getElementById('onButton').checked
     console.log("Receive updates selected: " + update)
-    if (update)
-    {
-    showWarningData()
-    console.log("Data updated")}
+    if (update) {
+        showWarningData()
+        console.log("Data updated")
+    }
 })
 
 function showWarningData() {
@@ -17,22 +22,42 @@ function showWarningData() {
         .then(response => response.json())
         .then(warningData => {
             let severity = document.getElementById('severity_text_box').value
-            let warnings = filterWarnings(warningData, severity)
-            appendWarnings(warningData, warnings)
+            
+            // Get and cache current data
+            let newWarnings = filterWarningsBySeverity(warningData, severity)
+
+            let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
+
+            warningsCache = []
+            newWarnings.forEach(warning => warningsCache.push(warning))
+            oldTime = warningData.time
+            
+            displayWarnings('changes_table', oldTime, changedWarnings)
+            displayWarnings('warnings_table', warningData.time, newWarnings)
         })
 }
 
-
-function filterWarnings(warningData, severity) {
+function filterWarningsBySeverity(warningData, severity) {
     return warningData.warnings.filter(warning => warning.severity >= severity)
 }
 
-function appendWarnings(warningData, filteredWarnings) {
-    let table = document.getElementById('warnings_table')
+function filterWarningsSinceLastUpdate(oldWarnings, newWarnings) {
+    return oldWarnings.filter(oldWarning => !newWarnings.some(newWarning => {
+        return newWarning.prediction.from === oldWarning.prediction.from
+            && newWarning.prediction.to === oldWarning.prediction.to
+            && newWarning.prediction.type === oldWarning.prediction.type
+            && newWarning.prediction.unit === oldWarning.prediction.unit
+            && newWarning.prediction.time === oldWarning.prediction.time
+            && newWarning.prediction.place === oldWarning.prediction.place
+    }))
+}
+
+function displayWarnings(tableName, time, warnings) {
+    let table = document.getElementById(tableName)
     // Ensure table is empty
     table.innerHTML = ""
 
-    filteredWarnings.forEach(warning => {
+    warnings.forEach(warning => {
         let row = table.insertRow();
 
         let timeCell = row.insertCell(0);
@@ -45,7 +70,7 @@ function appendWarnings(warningData, filteredWarnings) {
         let unitCell = row.insertCell(7)
         let placeCell = row.insertCell(8)
 
-        timeCell.innerHTML = warningData.time;
+        timeCell.innerHTML = time;
         severityCell.innerHTML = warning.severity
         fromCell.innerHTML = warning.prediction.from
         toCell.innerHTML = warning.prediction.to
@@ -58,5 +83,8 @@ function appendWarnings(warningData, filteredWarnings) {
         typeCell.innerHTML = warning.prediction.type
         unitCell.innerHTML = warning.prediction.unit; 
         placeCell.innerHTML = warning.prediction.place;
+
+        
     })
+    console.log(warnings + " appended to " + tableName)
 }
