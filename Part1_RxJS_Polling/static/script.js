@@ -23,9 +23,7 @@ function showWarningData() {
         .then(warningData => {
             let severity = document.getElementById('severity_text_box').value
             
-            // Get and cache current data
             let newWarnings = filterWarningsBySeverity(warningData, severity)
-
             let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
 
             warningsCache = []
@@ -49,8 +47,28 @@ function filterWarningsSinceLastUpdate(oldWarnings, newWarnings) {
             && newWarning.prediction.unit === oldWarning.prediction.unit
             && newWarning.prediction.time === oldWarning.prediction.time
             && newWarning.prediction.place === oldWarning.prediction.place
+            && arraysEqual(newWarning.prediction['precipitation_types'], oldWarning.prediction['precipitation_types'])
     }))
 }
+
+function arraysEqual(a, b) {
+    if (a === b) {
+        return true;
+    }
+    if (a == null || b == null) {
+        return false;
+    }
+    if (a.length != b.length) {
+        return false;
+    }
+
+    for (var i = 0; i < a.length; ++i) {
+      if (a[i] !== b[i]) {
+          return false;
+        }
+    }
+    return true;
+  }
 
 function displayWarnings(tableName, time, warnings) {
     let table = document.getElementById(tableName)
