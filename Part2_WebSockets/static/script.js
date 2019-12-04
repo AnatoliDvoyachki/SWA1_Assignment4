@@ -1,52 +1,91 @@
 let warningsCache = []
 let oldTime
+let timeUnsubscribed
+let isSubscribed
 let ws = new WebSocket("ws://localhost:8090/warnings")
 
 window.onload = () => showWarningData()
     
+window.subscribe = () => {
+    if (timeUnsubscribed != null) {
+        showWarningData('http://localhost:8080/warnings/since/' + timeUnsubscribed.toISOString())
+    }
+
+    if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({command: 'subscribe'}))
+        console.log("Subscribed")
+        isSubscribed = true
+    }
+}
+
+window.unsubscribe = () => {
+    if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({command: 'unsubscribe'}))
+        console.log("Unsubscribed")
+        isSubscribed = false
+    }
+    if (!isSubscribed) {
+        timeUnsubscribed = new Date()
+        console.log("Saved " + timeUnsubscribed.toISOString())
+    }
+}
+
+ws.onopen = () => {
+    ws.send(JSON.stringify({command: 'subscribe'}))
+}
+
 ws.onmessage = message => {
     console.log("onmessage called") 
     let warningData = JSON.parse(message.data)
-    
+    console.log(warningData)
     let severity = document.getElementById('severity_text_box').value
+    
+    if (warningData.severity >= severity) { 
+        displayWarning('warnings_table', warningData.prediction.time, warningData) 
+    }
 
-    let newWarnings = filterWarningsBySeverity(warningData, severity)
-    let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
+    if (warningData['prediction'] != null) {
+        oldTime = warningData.prediction['time'] != null ? warningData.prediction.time : oldTime 
+    }
 
-    warningsCache = []
-    newWarnings.forEach(warning => warningsCache.push(warning))
-    oldTime = warningData.time
+    console.log("Severity filter is " + severity)
 
-    displayWarnings('changes_table', oldTime, changedWarnings)
-    displayWarnings('warnings_table', warningData.time, newWarnings)
+    if (!warningsCache.some(oldWarning => warningEquals(oldWarning, warningData))) {
+        displayWarning('changes_table', oldTime, warningData)
+        warningsCache = []
+        warningsCache.push(warningData)
+        console.log('Changed warning ' + JSON.stringify(warningData))
+    }
 }
 
-ws.onclose = () => console.log("onclose called")
+function showWarningData(url = 'http://localhost:8080/warnings/') {
+    console.log(url)
+    fetch(url)
+    .then(response => response.json())
+    .then(warningData => {
+        let severity = document.getElementById('severity_text_box').value
+        
+        let warnings = filterWarningsBySeverity(warningData, severity)
+        let warningsSinceLastUpdate = filterWarningsSinceLastUpdate(warningsCache, warnings)
 
-function showWarningData() {
-    fetch('http://localhost:8080/warnings/')
-        .then(response => response.json())
-        .then(warningData => {
-            let severity = document.getElementById('severity_text_box').value
-            
-            let newWarnings = filterWarningsBySeverity(warningData, severity)
-            let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
-
-            warningsCache = []
-            newWarnings.forEach(warning => warningsCache.push(warning))
-            oldTime = warningData.time
-            
-            displayWarnings('changes_table', oldTime, changedWarnings)
-            displayWarnings('warnings_table', warningData.time, newWarnings)
-        })
+        warnings.forEach(warning => warningsCache.push(warning))
+        oldTime = warningData.time
+        
+        warningsSinceLastUpdate.forEach(warning => displayWarning('changes_table', oldTime, warning)) 
+        warnings.forEach(warning => displayWarning('warnings_table', warningData.time, warning)) 
+    })
 }
 
 function filterWarningsBySeverity(warningData, severity) {
     return warningData.warnings.filter(warning => warning.severity >= severity)
 }
 
-function filterWarningsSinceLastUpdate(oldWarnings, newWarnings) {
-    return oldWarnings.filter(oldWarning => !newWarnings.some(newWarning => {
+function filterWarningsSinceLastUpdate(oldWarnings, warnings) {
+    return oldWarnings.filter(oldWarning => !warnings.some(newWarning => warningEquals(oldWarning, newWarning)))
+}
+
+function warningEquals(oldWarning, newWarning) {
+    if (oldWarning['prediction'] != null && newWarning['prediction'] != null) {
         return newWarning.prediction.from === oldWarning.prediction.from
             && newWarning.prediction.to === oldWarning.prediction.to
             && newWarning.prediction.type === oldWarning.prediction.type
@@ -54,7 +93,8 @@ function filterWarningsSinceLastUpdate(oldWarnings, newWarnings) {
             && newWarning.prediction.time === oldWarning.prediction.time
             && newWarning.prediction.place === oldWarning.prediction.place
             && arraysEqual(newWarning.prediction['precipitation_types'], oldWarning.prediction['precipitation_types'])
-    }))
+    } 
+    return false
 }
 
 function arraysEqual(a, b) {
@@ -76,39 +116,50 @@ function arraysEqual(a, b) {
     return true;
   }
 
-function displayWarnings(tableName, time, warnings) {
+function displayWarning(tableName, time, warnings) {
     let table = document.getElementById(tableName)
-    // Ensure table is empty
-    table.innerHTML = ""
 
-    warnings.forEach(warning => {
-        let row = table.insertRow();
-
-        let timeCell = row.insertCell(0);
-        let severityCell = row.insertCell(1)
-        let fromCell = row.insertCell(2);
-        let toCell = row.insertCell(3);
-        let precipitationTypesCell = row.insertCell(4);
-        let directionsCell = row.insertCell(5)
-        let typeCell = row.insertCell(6)
-        let unitCell = row.insertCell(7)
-        let placeCell = row.insertCell(8)
-
-        timeCell.innerHTML = time;
-        severityCell.innerHTML = warning.severity
-        fromCell.innerHTML = warning.prediction.from
-        toCell.innerHTML = warning.prediction.to
-        if (warning.prediction['precipitation_types'] != null) {
-            precipitationTypesCell.innerHTML = warning.prediction.precipitation_types.join("\n")
+    if (table.rows.length > 10) {
+        for (let i = 1; i < table.rows.length - 1; i++) {
+            table.deleteRow(i);
         }
-        if (warning.prediction['directions'] != null) {
-            directionsCell.innerHTML = warning.prediction.directions.join("\n")
-        }
-        typeCell.innerHTML = warning.prediction.type
-        unitCell.innerHTML = warning.prediction.unit; 
-        placeCell.innerHTML = warning.prediction.place;
-
         
-    })
+        console.log("Cleaned up rows")
+    }
+
+    let row = table.insertRow();
+
+    let timeCell = row.insertCell(0);
+    let severityCell = row.insertCell(1)
+    let fromCell = row.insertCell(2);
+    let toCell = row.insertCell(3);
+    let precipitationTypesCell = row.insertCell(4);
+    let directionsCell = row.insertCell(5)
+    let typeCell = row.insertCell(6)
+    let unitCell = row.insertCell(7)
+    let placeCell = row.insertCell(8)
+
+    if (time != null) {
+        timeCell.innerHTML = time;
+    }
+    
+    if (warnings.severity != null) {
+        severityCell.innerHTML = warnings.severity
+    }
+
+    if (warnings.prediction != null) {
+        fromCell.innerHTML = warnings.prediction.from
+        toCell.innerHTML = warnings.prediction.to
+        if (warnings.prediction['precipitation_types'] != null) {
+            precipitationTypesCell.innerHTML = warnings.prediction.precipitation_types.join("\n")
+        }
+        if (warnings.prediction['directions'] != null) {
+            directionsCell.innerHTML = warnings.prediction.directions.join("\n")
+        }
+        typeCell.innerHTML = warnings.prediction.type
+        unitCell.innerHTML = warnings.prediction.unit; 
+        placeCell.innerHTML = warnings.prediction.place;
+    }
     console.log(warnings + " appended to " + tableName)
 }
+
