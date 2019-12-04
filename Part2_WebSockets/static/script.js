@@ -1,32 +1,30 @@
-import { timer } from 'http://dev.jspm.io/rxjs@6/_esm2015'
-
 let warningsCache = []
-let missedWarnings = []
-let changedWarningsTime
-let stopTime
+let oldTime
+let ws = new WebSocket("ws://localhost:8090/warnings")
 
 window.onload = () => showWarningData()
+    
+ws.onmessage = message => {
+    console.log("onmessage called") 
+    let warningData = JSON.parse(message.data)
+    
+    let severity = document.getElementById('severity_text_box').value
 
-let t = timer(5000, 5000)
-t.subscribe(() => {
-    let update = document.getElementById('onButton').checked
-    if (update) {
-        showWarningData()
-        stopTime = null
-    } else {
-        if (stopTime == null) {
-            stopTime = new Date()
-        }
-    }
-})
+    let newWarnings = filterWarningsBySeverity(warningData, severity)
+    let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
+
+    warningsCache = []
+    newWarnings.forEach(warning => warningsCache.push(warning))
+    oldTime = warningData.time
+
+    displayWarnings('changes_table', oldTime, changedWarnings)
+    displayWarnings('warnings_table', warningData.time, newWarnings)
+}
+
+ws.onclose = () => console.log("onclose called")
 
 function showWarningData() {
-    let ws = 'http://localhost:8080/warnings/'
-    if (stopTime != null) {
-        ws += 'since/' + stopTime.toISOString()
-    }
-
-    fetch(ws)
+    fetch('http://localhost:8080/warnings/')
         .then(response => response.json())
         .then(warningData => {
             let severity = document.getElementById('severity_text_box').value
@@ -36,9 +34,9 @@ function showWarningData() {
 
             warningsCache = []
             newWarnings.forEach(warning => warningsCache.push(warning))
-            changedWarningsTime = warningData.time
+            oldTime = warningData.time
             
-            displayWarnings('changes_table', changedWarningsTime, changedWarnings)
+            displayWarnings('changes_table', oldTime, changedWarnings)
             displayWarnings('warnings_table', warningData.time, newWarnings)
         })
 }

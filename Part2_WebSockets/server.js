@@ -130,8 +130,12 @@ update_periodically()
 
 wss.on('connection', (ws, req) => {
     ws.on('message', message => {
-        switch(message) {
-            case 'subscribe':
+		if (!ws.subscribed) {
+                    ws.subscribed = true
+                    ws.send(JSON.stringify(warnings(alerts)))
+                }	
+        /*switch(message.command) {
+            case '':
                 if (!ws.subscribed) {
                     ws.subscribed = true
                     ws.send(JSON.stringify(warnings(alerts)))
@@ -142,7 +146,7 @@ wss.on('connection', (ws, req) => {
                 break;
             default:
                 console.error(`Incorrect message: '${message}' from ${req.connection.remoteAddress} (${req.connection.remoteFamily})`)
-        }
+        }*/
     })
     ws.on('close', () => ws.subscribed = false)
 })
