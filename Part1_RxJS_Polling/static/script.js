@@ -1,46 +1,48 @@
 import { timer } from 'http://dev.jspm.io/rxjs@6/_esm2015'
 
 let warningsCache = []
-let missedWarnings = []
-let changedWarningsTime
-let stopTime
+let timeOfUnsubscription
 
 window.onload = () => showWarningData()
 
-let t = timer(5000, 5000)
+let t = timer(2000, 2000)
 t.subscribe(() => {
     let update = document.getElementById('onButton').checked
     if (update) {
         showWarningData()
-        stopTime = null
+        timeOfUnsubscription = null
     } else {
-        if (stopTime == null) {
-            stopTime = new Date()
+        if (timeOfUnsubscription == null) {
+            // Save the time when the user has selected to not see warnings
+            timeOfUnsubscription = new Date()
+            console.log("Saved: " + timeOfUnsubscription.toISOString())
         }
     }
 })
 
 function showWarningData() {
-    let ws = 'http://localhost:8080/warnings/'
-    if (stopTime != null) {
-        ws += 'since/' + stopTime.toISOString()
+    let endpoint = 'http://localhost:8080/warnings/'
+    
+    if (timeOfUnsubscription != null) {
+        endpoint += 'since/' + timeOfUnsubscription.toISOString()
     }
 
-    fetch(ws)
-        .then(response => response.json())
-        .then(warningData => {
-            let severity = document.getElementById('severity_text_box').value
-            
-            let newWarnings = filterWarningsBySeverity(warningData, severity)
-            let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
+    fetch(endpoint)
+    .then(response => response.json())
+    .then(warningData => {    
+        console.log("Endpoint called: " + endpoint)
+        
+        let severity = document.getElementById('severity_text_box').value
+        
+        let newWarnings = filterWarningsBySeverity(warningData, severity)
+        let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
 
-            warningsCache = []
-            newWarnings.forEach(warning => warningsCache.push(warning))
-            changedWarningsTime = warningData.time
-            
-            displayWarnings('changes_table', changedWarningsTime, changedWarnings)
-            displayWarnings('warnings_table', warningData.time, newWarnings)
-        })
+        warningsCache = []
+        newWarnings.forEach(warning => warningsCache.push(warning))
+        
+        displayWarnings('warnings_table', newWarnings)
+        displayWarnings('changes_table', changedWarnings)
+    })
 }
 
 function filterWarningsBySeverity(warningData, severity) {
@@ -48,7 +50,7 @@ function filterWarningsBySeverity(warningData, severity) {
 }
 
 function filterWarningsSinceLastUpdate(oldWarnings, newWarnings) {
-    return oldWarnings.filter(oldWarning => !newWarnings.some(newWarning => {
+    return newWarnings.filter(newWarning => !oldWarnings.some(oldWarning => {
         return newWarning.prediction.from === oldWarning.prediction.from
             && newWarning.prediction.to === oldWarning.prediction.to
             && newWarning.prediction.type === oldWarning.prediction.type
@@ -76,19 +78,18 @@ function arraysEqual(a, b) {
         }
     }
     return true;
-  }
+}
 
-function displayWarnings(tableName, time, warnings) {
+function displayWarnings(tableName, warnings) {
     let table = document.getElementById(tableName)
     
-    // Ensure table is empty
     if (table.rows.length > 10) {
         for (let i = 1; i < table.rows.length - 1; i++) {
             table.deleteRow(i);
         }
         
         console.log("Cleaned up rows")
-    }
+}
 
     warnings.forEach(warning => {
         let row = table.insertRow();
@@ -103,7 +104,7 @@ function displayWarnings(tableName, time, warnings) {
         let unitCell = row.insertCell(7)
         let placeCell = row.insertCell(8)
 
-        timeCell.innerHTML = time;
+        timeCell.innerHTML = warning.prediction.time;
         severityCell.innerHTML = warning.severity
         fromCell.innerHTML = warning.prediction.from
         toCell.innerHTML = warning.prediction.to
