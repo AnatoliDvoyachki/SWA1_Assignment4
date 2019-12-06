@@ -1,14 +1,14 @@
 let warningsCache = []
 let oldTime
-let timeUnsubscribed
+let timeOfUnubscription
 let isSubscribed
 let ws = new WebSocket("ws://localhost:8090/warnings")
 
 window.onload = () => showWarningData()
     
 window.subscribe = () => {
-    if (timeUnsubscribed != null) {
-        showWarningData('http://localhost:8080/warnings/since/' + timeUnsubscribed.toISOString())
+    if (timeOfUnubscription != null) {
+        showWarningData('http://localhost:8080/warnings/since/' + timeOfUnubscription.toISOString())
     }
 
     if (ws.readyState === WebSocket.OPEN) {
@@ -25,9 +25,13 @@ window.unsubscribe = () => {
         isSubscribed = false
     }
     if (!isSubscribed) {
-        timeUnsubscribed = new Date()
-        console.log("Saved " + timeUnsubscribed.toISOString())
+        timeOfUnubscription = new Date()
+        console.log("Saved time of last update: " + timeOfUnubscription.toISOString())
     }
+}
+
+window.onPageClose = () => {
+    ws.close(1001) // [1001] - Going away
 }
 
 ws.onopen = () => {
@@ -41,7 +45,9 @@ ws.onmessage = message => {
     let severity = document.getElementById('severity_text_box').value
     
     if (warningData.severity >= severity) { 
-        displayWarning('warnings_table', warningData.prediction.time, warningData) 
+        let prediction = warningData['prediction']
+        let time = prediction != null && prediction['time'] != null ? prediction['time'] : "" 
+        displayWarning('warnings_table', time, warningData) 
     }
 
     if (warningData['prediction'] != null) {
@@ -52,9 +58,14 @@ ws.onmessage = message => {
 
     if (!warningsCache.some(oldWarning => warningEquals(oldWarning, warningData))) {
         displayWarning('changes_table', oldTime, warningData)
-        warningsCache = []
-        warningsCache.push(warningData)
+        warningsCache = [warningData]
         console.log('Changed warning ' + JSON.stringify(warningData))
+    }
+}
+
+ws.onclose = () => {
+    if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({command: 'unsubscribe'}))
     }
 }
 
@@ -63,6 +74,7 @@ function showWarningData(url = 'http://localhost:8080/warnings/') {
     fetch(url)
     .then(response => response.json())
     .then(warningData => {
+        console.log("Server HTTP call: " + JSON.stringify(warningData))
         let severity = document.getElementById('severity_text_box').value
         
         let warnings = filterWarningsBySeverity(warningData, severity)
@@ -162,4 +174,3 @@ function displayWarning(tableName, time, warnings) {
     }
     console.log(warnings + " appended to " + tableName)
 }
-

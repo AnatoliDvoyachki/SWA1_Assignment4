@@ -80,8 +80,15 @@ function arraysEqual(a, b) {
 
 function displayWarnings(tableName, time, warnings) {
     let table = document.getElementById(tableName)
+    
     // Ensure table is empty
-    table.innerHTML = ""
+    if (table.rows.length > 10) {
+        for (let i = 1; i < table.rows.length - 1; i++) {
+            table.deleteRow(i);
+        }
+        
+        console.log("Cleaned up rows")
+    }
 
     warnings.forEach(warning => {
         let row = table.insertRow();
