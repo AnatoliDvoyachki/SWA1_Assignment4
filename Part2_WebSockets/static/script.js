@@ -12,29 +12,27 @@ window.subscribe = () => {
     }
 
     if (ws.readyState === WebSocket.OPEN) {
-        // Subscribe for data
         ws.send(JSON.stringify({command: 'subscribe'}))
-        console.log("Subscribed")
+        console.log("Client: Subscribed")
         isSubscribed = true
     }
 }
 
 window.unsubscribe = () => {
     if (ws.readyState === WebSocket.OPEN) {
-        // Unsubscribe
         ws.send(JSON.stringify({command: 'unsubscribe'}))
-        console.log("Unsubscribed")
+        console.log("Client: Unsubscribed")
         isSubscribed = false
     }
     if (!isSubscribed) {
         // Save time of unsubscribing, so that missed data can be aquired by HTTP request
         timeOfUnubscription = new Date()
-        console.log("Saved time of last update: " + timeOfUnubscription.toISOString())
+        console.log("Client: Saved time of last update: " + timeOfUnubscription.toISOString())
     }
 }
 
 window.onPageClose = () => {
-    ws.close(1001) // [1001] - Going away
+    ws.close(1001) // Going away
 }
 
 ws.onopen = () => {
@@ -49,15 +47,11 @@ ws.onmessage = message => {
     let newWarning = filterWarningsBySeverity(warningData, severity)
     let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarning)
 
-    if (warningsCache.length > 25) {
-        warningsCache = []
-    }
-
     warningsCache.push(newWarning)
     
     // Remove last row is okay, because messages arrive one by one & old ones will be removed before insert of newest one
     let table = document.getElementById('changes_table')
-    if (table.rows.length > 1) {
+    if (table.rows.length > 2) {
         for (let i = 1; i < table.rows.length - 1;) {
             table.deleteRow(i);
         }
@@ -79,22 +73,20 @@ ws.onclose = () => {
 }
 
 function showWarningData(url = 'http://localhost:8080/warnings/') {
-    console.log(url)
     fetch(url)
     .then(response => response.json())
     .then(warningData => {
-        console.log("Server call: " + url))
         let severity = document.getElementById('severity_text_box').value
         
         warningData.warnings.forEach(warning => {
             let newWarning = filterWarningsBySeverity(warning, severity)
             let warningLastUpdate = filterWarningsSinceLastUpdate(warningsCache, newWarning)
             
-            console.log("HTTP Cache: " + warningData.length)
             if (warningsCache.length > 30){
                 warningsCache = []
-                console.log("Cleaned up cache by promise")
+                console.log("Cleaned up cache")
             }
+    
             warningsCache.push(warning)
             
             if (newWarning != null) {
@@ -162,7 +154,7 @@ function displayWarning(tableName, warning) {
     let table = document.getElementById(tableName)
 
     if (table.rows.length > 30) {
-        for(var i = 1; i < table.rows.length - 2;){
+        for (let i = 1; i < table.rows.length - 1;){
             table.deleteRow(i);
         }
     }
@@ -200,5 +192,5 @@ function displayWarning(tableName, warning) {
         unitCell.innerHTML = warning.prediction.unit; 
         placeCell.innerHTML = warning.prediction.place;
     }
-    console.log(warning + " appended to " + tableName)
+    console.log("Appended to " + tableName + ": \n" + JSON.stringify(warning))
 }
