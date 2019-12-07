@@ -24,11 +24,11 @@
     </div>
     <div>
         <label for="updating_warnings">Update warnings?</label>
-        <input id="onButton" type="radio" name="updating" value="on" checked> On
-        <input id="offButton" type="radio" name="updating" value="off"> Off
+        <input id="onButton" onclick="onOnClick()" type="radio" name="updating" value="on" checked> On
+        <input id="offButton" onclick="onOffClick()" type="radio" name="updating" value="off"> Off
     </div>
     <div id='warnings_div'>
-        <h1>Latest warnings:</h1>
+        <h1>Warnings:</h1>
         <table id='warnings_table'>
         <thead>
             <tr>
@@ -47,7 +47,7 @@
         </table>
     </div>    
     <div id='changes_div'>
-            <h1>Changed warnings:</h1>
+            <h1>Changed warnings since last update:</h1>
             <table id='changes_table'>
             <thead>
                 <tr>

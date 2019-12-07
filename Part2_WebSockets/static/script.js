@@ -51,7 +51,7 @@ ws.onmessage = message => {
     
     // Remove last row is okay, because messages arrive one by one & old ones will be removed before insert of newest one
     let table = document.getElementById('changes_table')
-    if (table.rows.length > 2) {
+    if (table.rows.length > 1) {
         for (let i = 1; i < table.rows.length - 1;) {
             table.deleteRow(i);
         }

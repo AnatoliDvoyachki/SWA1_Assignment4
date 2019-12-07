@@ -1,11 +1,49 @@
-import { timer } from 'http://dev.jspm.io/rxjs@6/_esm2015'
+import { map, concatMap } from 'http://dev.jspm.io/rxjs@6.5.3/_esm2015/operators/index.js';
+import { ajax } from 'http://dev.jspm.io/rxjs@6.5.3/_esm2015/ajax/index.js'
+import { interval } from 'http://dev.jspm.io/rxjs@6.5.3/_esm2015/internal/observable/interval.js'                      
 
 let warningsCache = []
 let timeOfUnsubscription
+let isSubscribed = false
 
-window.onload = () => showWarningData()
+let heartbeat = interval(3000)
 
-let t = timer(2000, 2000)
+window.onload = () => {
+    showWarningData()
+    subscribe()
+}
+
+window.onOnClick = () => {
+    showWarningData()
+    subscribe()
+}
+
+window.onOffClick = function() {
+    timeOfUnsubscription = new Date()
+    isSubscribed = false
+}
+
+function subscribe() {
+    heartbeat
+    .pipe(concatMap(() => ajax.getJSON('http://localhost:8080/warnings')), map((warnings) => warnings))
+    .subscribe(warnings => {
+        if (isSubscribed) {
+            let severity = document.getElementById('severity_text_box').value
+                
+            let newWarnings = filterWarningsBySeverity(warnings, severity)
+            let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
+        
+            warningsCache = []
+            newWarnings.forEach(warning => warningsCache.push(warning))
+            
+            displayWarnings('warnings_table', newWarnings)
+            displayWarnings('changes_table', changedWarnings)
+        }
+    })
+    isSubscribed = true
+}
+
+/*let t = timer(2000, 2000)
 t.subscribe(() => {
     let update = document.getElementById('onButton').checked
     if (update) {
@@ -15,10 +53,10 @@ t.subscribe(() => {
         if (timeOfUnsubscription == null) {
             // Save the time when the user has selected to not see warnings
             timeOfUnsubscription = new Date()
-            console.log("Saved: " + timeOfUnsubscription.toISOString())
+            console.log("Time of unsubscription: " + timeOfUnsubscription.toISOString())
         }
     }
-})
+})*/
 
 function showWarningData() {
     let endpoint = 'http://localhost:8080/warnings/'
@@ -87,9 +125,8 @@ function displayWarnings(tableName, warnings) {
         for (let i = 1; i < table.rows.length - 1; i++) {
             table.deleteRow(i);
         }
-        
         console.log("Cleaned up rows")
-}
+    }
 
     warnings.forEach(warning => {
         let row = table.insertRow();
@@ -120,5 +157,5 @@ function displayWarnings(tableName, warnings) {
 
         
     })
-    console.log(warnings + " appended to " + tableName)
+    console.log("Appended to " + tableName + " " + JSON.stringify(warnings))
 }
