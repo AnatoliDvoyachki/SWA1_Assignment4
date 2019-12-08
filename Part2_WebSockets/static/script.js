@@ -32,7 +32,7 @@ window.unsubscribe = function() {
 }
 
 window.onPageClose = function() {
-    if (ws.readyState !== WebSocket.CLOSED || WebSocket.CLOSING) {
+    if (ws.readyState !== WebSocket.CLOSED || ws.readyState !== WebSocket.CLOSING) {
         ws.close(1001) // 1001 Going away
     }
 }
@@ -62,7 +62,7 @@ ws.onmessage = function(message) {
 }
 
 ws.onclose = function() {
-    if (ws.readyState === WebSocket.OPEN) {
+    if (isSubscribed) {
         ws.send(JSON.stringify({command: 'unsubscribe'}))
     }
 }
@@ -71,21 +71,19 @@ function showWarningData(url = 'http://localhost:8080/warnings/') {
     fetch(url)
     .then(response => response.json())
     .then(warningData => {
-        console.log(new Date() + " Endpoint called " + url)
+        console.log('[' + new Date().toISOString() + "] Endpoint called " + url)
         let severity = document.getElementById('severity_text_box').value
         
         warningData.warnings.forEach(warning => {
             let newWarning = filterWarningBySeverity(warning, severity)
             let warningSinceLastUpdate = filterWarningSinceLastUpdate(warningsCache, newWarning)
             
-            if (warningsCache.length > 30){
-                // To avoid making the page too big
+            if (warningsCache.length > 30) {
+                // To avoid making the page too big max
                 warningsCache = []
                 
                 clearTable('warnings_table') 
                 clearTable('changes_table')
-
-                console.log("Cleaned up cache & UI")
             }
             
             warningsCache.push(newWarning)
