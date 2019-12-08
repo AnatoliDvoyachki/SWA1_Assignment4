@@ -8,19 +8,24 @@ let isSubscribed = false
 
 let heartbeat = interval(3000)
 
-window.onload = () => {
+window.onload = function() {
     showWarningData()
     subscribe()
 }
 
-window.onOnClick = () => {
+window.onOnClick = function() {
     showWarningData()
-    subscribe()
+    timeOfUnsubscription = null
+    if (!isSubscribed) {
+        subscribe()
+        console.log('[' + new Date().toISOString() + ']: Subscribed')
+    } 
 }
 
 window.onOffClick = function() {
     timeOfUnsubscription = new Date()
     isSubscribed = false
+    console.log('[' + timeOfUnsubscription.toISOString() + ']: Unsubscribed')
 }
 
 function subscribe() {
@@ -28,35 +33,23 @@ function subscribe() {
     .pipe(concatMap(() => ajax.getJSON('http://localhost:8080/warnings')), map((warnings) => warnings))
     .subscribe(warnings => {
         if (isSubscribed) {
-            let severity = document.getElementById('severity_text_box').value
+            let minSeverity = document.getElementById('severity_text_box').value
                 
-            let newWarnings = filterWarningsBySeverity(warnings, severity)
+            let newWarnings = filterWarningsBySeverity(warnings, minSeverity)
             let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
         
             warningsCache = []
             newWarnings.forEach(warning => warningsCache.push(warning))
             
             displayWarnings('warnings_table', newWarnings)
+
+            // Remove all 'old' warnings since last update
+            clearTable('changes_table')
             displayWarnings('changes_table', changedWarnings)
         }
     })
     isSubscribed = true
 }
-
-/*let t = timer(2000, 2000)
-t.subscribe(() => {
-    let update = document.getElementById('onButton').checked
-    if (update) {
-        showWarningData()
-        timeOfUnsubscription = null
-    } else {
-        if (timeOfUnsubscription == null) {
-            // Save the time when the user has selected to not see warnings
-            timeOfUnsubscription = new Date()
-            console.log("Time of unsubscription: " + timeOfUnsubscription.toISOString())
-        }
-    }
-})*/
 
 function showWarningData() {
     let endpoint = 'http://localhost:8080/warnings/'
@@ -68,23 +61,27 @@ function showWarningData() {
     fetch(endpoint)
     .then(response => response.json())
     .then(warningData => {    
-        console.log("Endpoint called: " + endpoint)
-        
-        let severity = document.getElementById('severity_text_box').value
-        
-        let newWarnings = filterWarningsBySeverity(warningData, severity)
-        let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
+        console.log('[' + new Date().toISOString() + ']: Endpoint called ' + endpoint)
 
+        let minSeverity = document.getElementById('severity_text_box').value
+        
+        let newWarnings = filterWarningsBySeverity(warningData, minSeverity)
+        let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
+        
+        // Empty cache after last updated warnings have been filtered, to ensure that the next update will show valid results
         warningsCache = []
         newWarnings.forEach(warning => warningsCache.push(warning))
         
+        clearTable('warnings_table')
         displayWarnings('warnings_table', newWarnings)
+        
+        clearTable('changes_table')
         displayWarnings('changes_table', changedWarnings)
     })
 }
 
-function filterWarningsBySeverity(warningData, severity) {
-    return warningData.warnings.filter(warning => warning.severity >= severity)
+function filterWarningsBySeverity(warningData, minSeverity) {
+    return warningData.warnings.filter(warning => warning.severity >= minSeverity)
 }
 
 function filterWarningsSinceLastUpdate(oldWarnings, newWarnings) {
@@ -116,6 +113,14 @@ function arraysEqual(a, b) {
         }
     }
     return true;
+}
+
+function clearTable(tableName) {
+// Remove all 'old' warnings since last update
+    let table = document.getElementById(tableName)
+    for (let i = 1;i < table.rows.length;){
+        table.deleteRow(i);
+    }
 }
 
 function displayWarnings(tableName, warnings) {
@@ -154,8 +159,6 @@ function displayWarnings(tableName, warnings) {
         typeCell.innerHTML = warning.prediction.type
         unitCell.innerHTML = warning.prediction.unit; 
         placeCell.innerHTML = warning.prediction.place;
-
-        
     })
     console.log("Appended to " + tableName + " " + JSON.stringify(warnings))
 }

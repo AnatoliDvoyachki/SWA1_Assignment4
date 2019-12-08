@@ -20,7 +20,7 @@
 <body onunload="onPageClose()">
     <div>
         <label for="severity">Severity:</label>
-        <input id ="severity_text_box" type="text" value="0">
+        <input id ="severity_text_box" type="text" value="1">
     </div>
     <div>
         <label for="updating_warnings">Update warnings?</label>
@@ -28,7 +28,7 @@
         <input id="offButton" type="radio" onclick="unsubscribe()" name="updating" value="off"> Off
     </div>
     <div id='warnings_div'>
-        <h1>Warnings:</h1>
+        <h1>Warnings feed (updated every 3 seconds):</h1>
         <table id='warnings_table'>
         <thead>
             <tr>

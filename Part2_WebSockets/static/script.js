@@ -3,70 +3,65 @@ let timeOfUnubscription
 let isSubscribed
 let ws = new WebSocket("ws://localhost:8090/warnings")
 
-window.onload = () => showWarningData()
+window.onload = function() {
+    showWarningData()
+}
     
-window.subscribe = () => {
+window.subscribe = function() {
     if (timeOfUnubscription != null) {
         // Show data that has been missed since the user has unsubscribed
         showWarningData('http://localhost:8080/warnings/since/' + timeOfUnubscription.toISOString())
+        timeOfUnubscription = null
     }
 
     if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({command: 'subscribe'}))
-        console.log("Client: Subscribed")
+        console.log('[' + new Date().toISOString() + ']: Subscribed')
         isSubscribed = true
     }
 }
 
-window.unsubscribe = () => {
+window.unsubscribe = function() {
     if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({command: 'unsubscribe'}))
-        console.log("Client: Unsubscribed")
-        isSubscribed = false
+        ws.send(JSON.stringify({command: 'unsubscribe'})) 
     }
-    if (!isSubscribed) {
-        // Save time of unsubscribing, so that missed data can be aquired by HTTP request
-        timeOfUnubscription = new Date()
-        console.log("Client: Saved time of last update: " + timeOfUnubscription.toISOString())
+   
+    timeOfUnubscription = new Date()
+    console.log('[' + timeOfUnubscription.toISOString() + ']: Unsubscribed')
+    isSubscribed = false
+}
+
+window.onPageClose = function() {
+    if (ws.readyState !== WebSocket.CLOSED || WebSocket.CLOSING) {
+        ws.close(1001) // 1001 Going away
     }
 }
 
-window.onPageClose = () => {
-    ws.close(1001) // Going away
-}
-
-ws.onopen = () => {
+ws.onopen = function() {
     ws.send(JSON.stringify({command: 'subscribe'}))
 }
 
-ws.onmessage = message => {
+ws.onmessage = function(message) {
     let warningData = JSON.parse(message.data)
     
     let severity = document.getElementById('severity_text_box').value
 
-    let newWarning = filterWarningsBySeverity(warningData, severity)
-    let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarning)
+    let newWarning = filterWarningBySeverity(warningData, severity)
+    let changedWarnings = filterWarningSinceLastUpdate(warningsCache, newWarning)
 
     warningsCache.push(newWarning)
-    
-    // Remove last row is okay, because messages arrive one by one & old ones will be removed before insert of newest one
-    let table = document.getElementById('changes_table')
-    if (table.rows.length > 1) {
-        for (let i = 1; i < table.rows.length - 1;) {
-            table.deleteRow(i);
-        }
-    }
-    
-    if (changedWarnings != null) {
-        displayWarning('changes_table', changedWarnings)
-    }
 
     if (newWarning != null) {
         displayWarning('warnings_table', newWarning)
     }
+
+    clearTable('changes_table') // Since messages arrive one by one this should be okay
+    if (changedWarnings != null) {
+        displayWarning('changes_table', changedWarnings)
+    }
 }
 
-ws.onclose = () => {
+ws.onclose = function() {
     if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({command: 'unsubscribe'}))
     }
@@ -76,37 +71,51 @@ function showWarningData(url = 'http://localhost:8080/warnings/') {
     fetch(url)
     .then(response => response.json())
     .then(warningData => {
+        console.log(new Date() + " Endpoint called " + url)
         let severity = document.getElementById('severity_text_box').value
         
         warningData.warnings.forEach(warning => {
-            let newWarning = filterWarningsBySeverity(warning, severity)
-            let warningLastUpdate = filterWarningsSinceLastUpdate(warningsCache, newWarning)
+            let newWarning = filterWarningBySeverity(warning, severity)
+            let warningSinceLastUpdate = filterWarningSinceLastUpdate(warningsCache, newWarning)
             
             if (warningsCache.length > 30){
+                // To avoid making the page too big
                 warningsCache = []
-                console.log("Cleaned up cache")
+                
+                clearTable('warnings_table') 
+                clearTable('changes_table')
+
+                console.log("Cleaned up cache & UI")
             }
-    
-            warningsCache.push(warning)
+            
+            warningsCache.push(newWarning)
             
             if (newWarning != null) {
                 displayWarning('warnings_table', newWarning)
             }  
-            if (warningLastUpdate != null) {
-                displayWarning('changes_table', warningLastUpdate)
+            if (warningSinceLastUpdate != null) {
+                displayWarning('changes_table', warningSinceLastUpdate)
             }  
         })
     })
 }
 
-function filterWarningsBySeverity(warningData, severity) {
+function clearTable(tableName) {
+    // Remove all 'old' warnings since last update
+    let table = document.getElementById(tableName)
+    for (let i = 1;i < table.rows.length;){
+        table.deleteRow(i);
+    }
+}
+
+function filterWarningBySeverity(warningData, severity) {
     if (warningData != null && warningData['severity'] != null && warningData['severity'] >= severity) {
         return warningData
     }
     return null
 }
 
-function filterWarningsSinceLastUpdate(oldWarnings, newWarning) {
+function filterWarningSinceLastUpdate(oldWarnings, newWarning) {
     if (oldWarnings.some(oldWarning => warningEquals(oldWarning, newWarning))) {
         return null
     } 
@@ -153,12 +162,6 @@ function arraysEqual(a, b) {
 function displayWarning(tableName, warning) {
     let table = document.getElementById(tableName)
 
-    if (table.rows.length > 30) {
-        for (let i = 1; i < table.rows.length - 1;){
-            table.deleteRow(i);
-        }
-    }
-
     let row = table.insertRow();
 
     let timeCell = row.insertCell(0);
@@ -192,5 +195,5 @@ function displayWarning(tableName, warning) {
         unitCell.innerHTML = warning.prediction.unit; 
         placeCell.innerHTML = warning.prediction.place;
     }
-    console.log("Appended to " + tableName + ": \n" + JSON.stringify(warning))
+    console.log(new Date().toISOString() + " appended to " + tableName + ": \n" + JSON.stringify(warning))
 }
