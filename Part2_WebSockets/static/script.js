@@ -32,7 +32,7 @@ window.unsubscribe = function() {
 }
 
 window.onPageClose = function() {
-    if (ws.readyState !== WebSocket.CLOSED || ws.readyState !== WebSocket.CLOSING) {
+    if (ws.bufferedAmount === 0) {
         ws.close(1001) // 1001 Going away
     }
 }
