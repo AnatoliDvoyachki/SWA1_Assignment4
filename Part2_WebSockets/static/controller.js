@@ -80,6 +80,10 @@ ws.onclose = function() {
     }
 }
 
+ws.onerror = function(error) {
+    console.log(`An error has occured in web socket communication ${error}`)
+}
+
 function showWarningData(url = serverWarnings) {
     fetch(url)
     .then(response => response.json())
