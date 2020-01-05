@@ -51,7 +51,7 @@ function subscribe() {
                 displayWarnings("changes_table", changedWarnings)
             }
         },
-        error => console.error(error))
+        error => console.error(error)) 
     isSubscribed = true
 }
 
