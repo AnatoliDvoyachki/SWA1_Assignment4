@@ -93,7 +93,7 @@ function showWarningData(url = serverWarnings) {
         
         warningData.warnings.forEach(warning => {
             let severeEnoughWarning = checkWarningSeverity(warning, severity)
-            let warningSinceLastUpdate = If(warningsCache, severeEnoughWarning)
+            let warningSinceLastUpdate = checkIfNewWarningSinceLastUpdate(warningsCache, severeEnoughWarning)
             
             if (warningsCache.length > 30) {
                 // To avoid making the page too big max
