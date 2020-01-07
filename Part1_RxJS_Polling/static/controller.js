@@ -89,5 +89,5 @@ const showWarningData = () => {
         clearTable("changes_table")
         displayWarnings("changes_table", changedWarnings)
     })
-    .catch(console.error)
+    .catch(error => console.error(error))
 }
