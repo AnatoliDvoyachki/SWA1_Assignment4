@@ -6,90 +6,91 @@ const serverSocketUrl = "ws://localhost:8090/warnings"
 const serverWarnings = "http://localhost:8080/warnings/"
 const serverWarningsSinceUrl = "http://localhost:8080/warnings/since/"
 
-// Weather data protocol commands
+// Weather data protocol methods
 const subscribeCommand = "subscribe"
 const unsubscribeCommand = "unsubscribe"
 
 let warningsCache = []
 let timeOfUnubscription
 let isSubscribed
-let ws = new WebSocket(serverSocketUrl)
+
+let socket = new WebSocket(serverSocketUrl)
 
 // Document events
-window.onload = function() {
-    showWarningData()
-}
+window.onload = () => showWarningData(serverWarnings)
     
-window.subscribe = function() {
-    if (timeOfUnubscription != null) {
+window.subscribe = () => {
+    if (timeOfUnubscription !== null) {
         // Show data that has been missed since the user has unsubscribed
         showWarningData(serverWarningsSinceUrl + timeOfUnubscription.toISOString())
         timeOfUnubscription = null
     }
 
-    if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({command: subscribeCommand }))
-        console.log('[' + new Date().toISOString() + ']: Subscribed')
+    if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({command: subscribeCommand }))
+        console.log(`[${new Date().toISOString()}]: Subscribed`)
         isSubscribed = true
     }
 }
 
-window.unsubscribe = function() {
-    if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({command: unsubscribeCommand })) 
+window.unsubscribe = () => {
+    if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ command: unsubscribeCommand })) 
     }
    
     timeOfUnubscription = new Date()
-    console.log('[' + timeOfUnubscription.toISOString() + ']: Unsubscribed')
+    console.log(`[${timeOfUnubscription.toISOString()}]: Unsubscribed`)
     isSubscribed = false
 }
 
-window.onPageClose = function() {
-    if (ws.bufferedAmount === 0) {
-        ws.close(1001) // 1001 Going away
+window.onPageClose = () => {
+    if (socket.bufferedAmount === 0) {
+        socket.close(1001) // 1001 Going away
     }
 }
 
-ws.onopen = function() {
-    ws.send(JSON.stringify({command: subscribeCommand }))
-}
+socket.onopen = () => socket.send(JSON.stringify({command: subscribeCommand }))
 
-ws.onmessage = function(message) {
+socket.onmessage = message => {
     let warningData = JSON.parse(message.data)
     
-    let severity = document.getElementById('severity_text_box').value
+    let severity = document.getElementById("severity_text_box").value
 
     let severeEnoughWarning = checkWarningSeverity(warningData, severity)
     let changedWarnings = checkIfNewWarningSinceLastUpdate(warningsCache, severeEnoughWarning)
 
     warningsCache.push(severeEnoughWarning)
 
-    if (severeEnoughWarning != null) {
-        displayWarning('warnings_table', severeEnoughWarning)
+    if (severeEnoughWarning !== null) {
+        displayWarning("warnings_table", severeEnoughWarning)
     }
 
-    clearTable('changes_table') // Since messages arrive one by one this should be okay
-    if (changedWarnings != null) {
-        displayWarning('changes_table', changedWarnings)
+    clearTable("changes_table") // Since messages arrive one by one this should be okay
+    if (changedWarnings !== null) {
+        displayWarning("changes_table", changedWarnings)
     }
 }
 
-ws.onclose = function() {
+socket.onclose = () => {
     if (isSubscribed) {
-        ws.send(JSON.stringify({ command: unsubscribeCommand }))
+        socket.send(JSON.stringify({ command: unsubscribeCommand }))
     }
 }
 
-ws.onerror = function(error) {
-    console.log(`An error has occured in web socket communication ${error}`)
-}
+socket.onerror = error => console.log(`An error has occured in web socket communication ${error}`)
 
-function showWarningData(url = serverWarnings) {
+
+const showWarningData = url => {
     fetch(url)
-    .then(response => response.json())
+    .then(response => { 
+        if (response.ok) {
+            return response.json()
+        }
+        throw new Error("Network response was not ok.")
+    })
     .then(warningData => {
-        console.log('[' + new Date().toISOString() + "] Endpoint called " + url)
-        let severity = document.getElementById('severity_text_box').value
+        console.log(`[${new Date().toISOString()}] Endpoint called ${url}`)
+        let severity = document.getElementById("severity_text_box").value
         
         warningData.warnings.forEach(warning => {
             let severeEnoughWarning = checkWarningSeverity(warning, severity)
@@ -99,17 +100,17 @@ function showWarningData(url = serverWarnings) {
                 // To avoid making the page too big max
                 warningsCache = []
                 
-                clearTable('warnings_table') 
-                clearTable('changes_table')
+                clearTable("warnings_table") 
+                clearTable("changes_table")
             }
             
             warningsCache.push(severeEnoughWarning)
             
-            if (severeEnoughWarning != null) {
-                displayWarning('warnings_table', severeEnoughWarning)
+            if (severeEnoughWarning !== null) {
+                displayWarning("warnings_table", severeEnoughWarning)
             }  
-            if (warningSinceLastUpdate != null) {
-                displayWarning('changes_table', warningSinceLastUpdate)
+            if (warningSinceLastUpdate !== null) {
+                displayWarning("changes_table", warningSinceLastUpdate)
             }  
         })
     })

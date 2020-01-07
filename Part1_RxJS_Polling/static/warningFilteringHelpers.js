@@ -1,8 +1,8 @@
-function filterWarningsBySeverity(warningData, minSeverity) {
+const filterWarningsBySeverity = (warningData, minSeverity) => {
     return warningData.warnings.filter(warning => warning.severity >= minSeverity)
 }
 
-function filterWarningsSinceLastUpdate(oldWarnings, newWarnings) {
+const filterWarningsSinceLastUpdate = (oldWarnings, newWarnings) => {
     return newWarnings.filter(newWarning => !oldWarnings.some(oldWarning => {
         return newWarning.prediction.from === oldWarning.prediction.from
             && newWarning.prediction.to === oldWarning.prediction.to
@@ -14,14 +14,14 @@ function filterWarningsSinceLastUpdate(oldWarnings, newWarnings) {
     }))
 }
 
-function arraysEqual(a, b) {
+const arraysEqual = (a, b) => {
     if (a === b) {
         return true;
     }
-    if (a == null || b == null) {
+    if (a === null || b === null) {
         return false;
     }
-    if (a.length != b.length) {
+    if (a.length !== b.length) {
         return false;
     }
 

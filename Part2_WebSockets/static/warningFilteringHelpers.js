@@ -1,23 +1,23 @@
-function checkWarningSeverity(warningData, severity) {
-    if (warningData != null && warningData['severity'] != null && warningData['severity'] >= severity) {
+const checkWarningSeverity = (warningData, severity) => {
+    if (warningData !== null && warningData['severity'] !== null && warningData['severity'] >= severity) {
         return warningData
     }
     return null
 }
 
-function checkIfNewWarningSinceLastUpdate(historicalWarnings, warning) {
+const checkIfNewWarningSinceLastUpdate = (historicalWarnings, warning) => {
     if (historicalWarnings.some(historicalWarning => warningEquals(historicalWarning, warning))) {
         return null
     } 
     return warning
 }
 
-function warningEquals(oldWarning, newWarning) {
-    if (oldWarning == null || oldWarning['prediction'] == null) {
+const warningEquals = (oldWarning, newWarning) => {
+    if (oldWarning === null || oldWarning['prediction'] === null) {
         return false
     }
 
-    if (newWarning == null || newWarning['prediction'] == null) {
+    if (newWarning === null || newWarning['prediction'] === null) {
         return false
     }
 
@@ -30,14 +30,14 @@ function warningEquals(oldWarning, newWarning) {
         && arraysEqual(newWarning.prediction['precipitation_types'], oldWarning.prediction['precipitation_types'])
 }
 
-function arraysEqual(a, b) {
+const arraysEqual = (a, b) => {
     if (a === b) {
         return true;
     }
-    if (a == null || b == null) {
+    if (a === null || b === null) {
         return false;
     }
-    if (a.length != b.length) {
+    if (a.length !== b.length) {
         return false;
     }
 

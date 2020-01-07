@@ -1,5 +1,5 @@
 
-function displayWarning(tableName, warning) {
+const displayWarning = (tableName, warning) => {
     let table = document.getElementById(tableName)
 
     let row = table.insertRow();
@@ -14,31 +14,31 @@ function displayWarning(tableName, warning) {
     let unitCell = row.insertCell(7)
     let placeCell = row.insertCell(8)
 
-    if (warning['prediction'] != null && warning.prediction['time'] != null) {
+    if (warning['prediction'] !== null && warning.prediction['time'] !== null) {
         timeCell.innerHTML = warning.prediction.time;
     }
     
-    if (warning['severity'] != null) {
+    if (warning['severity'] !== null) {
         severityCell.innerHTML = warning.severity
     }
 
-    if (warning != null && warning['prediction'] != null) {
+    if (warning !== null && warning['prediction'] !== null) {
         fromCell.innerHTML = warning.prediction.from
         toCell.innerHTML = warning.prediction.to
-        if (warning.prediction['precipitation_types'] != null) {
+        if (warning.prediction['precipitation_types'] !== null) {
             precipitationTypesCell.innerHTML = warning.prediction.precipitation_types.join("\n")
         }
-        if (warning.prediction['directions'] != null) {
+        if (warning.prediction['directions'] !== null) {
             directionsCell.innerHTML = warning.prediction.directions.join("\n")
         }
         typeCell.innerHTML = warning.prediction.type
         unitCell.innerHTML = warning.prediction.unit; 
         placeCell.innerHTML = warning.prediction.place;
     }
-    console.log(new Date().toISOString() + " appended to " + tableName + ": \n" + JSON.stringify(warning))
+    console.log(`${new Date().toISOString()} appended to ${tableName}: \n${JSON.stringify(warning)}`)
 }
 
-function clearTable(tableName) {
+const clearTable = (tableName) => {
     // Remove all 'old' warnings since last update
     let table = document.getElementById(tableName)
     for (let i = 1;i < table.rows.length;){

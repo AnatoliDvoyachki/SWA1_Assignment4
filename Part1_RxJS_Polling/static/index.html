@@ -12,9 +12,9 @@
             border: 1px solid black;
             border-spacing: 0;
         }
-</style>   
+    </style>   
 
-<script type="module" src="controller.js"></script>
+    <script type="module" src="controller.js"></script>
 
 </head>
 <body>
@@ -27,42 +27,42 @@
         <input id="onButton" onclick="onOnClick()" type="radio" name="updating" value="on" checked> On
         <input id="offButton" onclick="onOffClick()" type="radio" name="updating" value="off"> Off
     </div>
-    <div id='warnings_div'>
+    <div id="warnings_div">
         <h1>Warnings feed (updated every 3 seconds):</h1>
-        <table id='warnings_table'>
+        <table id="warnings_table">
         <thead>
             <tr>
-                <td>Time</td>
-                <td>Severity</td>
-                <td>From</td>
-                <td>To</td>
-                <td>Precipitation types</td>
-                <td>Directions</td>
-                <td>Type</td>
-                <td>Unit</td>
-                <td>Place</td>
+                <td><b>Time</b></td>
+                <td><b>Severity</b></td>
+                <td><b>From</b></td>
+                <td><b>To</b></td>
+                <td><b>Precipitation types</b></td>
+                <td><b>Directions</b></td>
+                <td><b>Type</b></td>
+                <td><b>Unit</b></td>
+                <td><b>Place</b></td>
             </tr>
         </thead>
-        <tbody id='warnings_table'></tbody>
+        <tbody id="warnings_table"></tbody>
         </table>
     </div>    
-    <div id='changes_div'>
+    <div id="changes_div">
             <h1>Changed warnings since last update:</h1>
-            <table id='changes_table'>
+            <table id="changes_table">
             <thead>
                 <tr>
-                    <td>Time</td>
-                    <td>Severity</td>
-                    <td>From</td>
-                    <td>To</td>
-                    <td>Precipitation types</td>
-                    <td>Directions</td>
-                    <td>Type</td>
-                    <td>Unit</td>
-                    <td>Place</td>
+                    <td><b>Time</b></td>
+                    <td><b>Severity</b></td>
+                    <td><b>From</b></td>
+                    <td><b>To</b></td>
+                    <td><b>Precipitation types</b></td>
+                    <td><b>Directions</b></td>
+                    <td><b>Type</b></td>
+                    <td><b>Unit</b></td>
+                    <td><b>Place</b></td>
                 </tr>
             </thead>
-            <tbody id='changes_table'></tbody>
+            <tbody id="changes_table"></tbody>
             </table>
         </div>    
 </body>

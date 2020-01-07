@@ -4,7 +4,7 @@ import { map, concatMap } from "http://dev.jspm.io/rxjs@6.5.3/_esm2015/operators
 import { ajax } from "http://dev.jspm.io/rxjs@6.5.3/_esm2015/ajax/index.js"
 import { interval } from "http://dev.jspm.io/rxjs@6.5.3/_esm2015/internal/observable/interval.js"                      
 
-const warningsUrl = "http://localhost:8080/warnings"
+const serverWarningsUrl = "http://localhost:8080/warnings/"
 
 let warningsCache = []
 let timeOfUnsubscription
@@ -12,28 +12,28 @@ let isSubscribed = false
 
 let heartbeat = interval(3000)
 
-window.onload = function() {
+window.onload = () => {
     showWarningData()
     subscribe()
 }
 
-window.onOnClick = function() {
+window.onOnClick = () => {
     showWarningData()
     timeOfUnsubscription = null
     if (!isSubscribed) {
         subscribe()
-        console.log("[" + new Date().toISOString() + "]: Subscribed")
+        console.log(`[${new Date().toISOString()}]: Subscribed`)
     } 
 }
 
-window.onOffClick = function() {
+window.onOffClick = () => {
     timeOfUnsubscription = new Date()
     isSubscribed = false
-    console.log("[" + timeOfUnsubscription.toISOString() + "]: Unsubscribed")
+    console.log(`[${timeOfUnsubscription.toISOString()}]: Unsubscribed`)
 }
 
-function subscribe() {
-    heartbeat.pipe(concatMap(() => ajax.getJSON(warningsUrl)), map(warnings => warnings))
+const subscribe = () => {
+    heartbeat.pipe(concatMap(() => ajax.getJSON(serverWarningsUrl)), map(warnings => warnings))
         .subscribe(warnings => {
             if (isSubscribed) {
                 let minSeverity = document.getElementById("severity_text_box").value
@@ -52,21 +52,27 @@ function subscribe() {
             }
         },
         error => console.error(error)) 
+
     isSubscribed = true
 }
 
 // Used for "catching up" with data missed while being unsubscribed
-function showWarningData() {
-    let endpoint = warningsUrl
+const showWarningData = () => {
+    let endpoint = serverWarningsUrl
     
-    if (timeOfUnsubscription != null) {
-        endpoint += "since/" + timeOfUnsubscription.toISOString()
+    if (timeOfUnsubscription !== null) {
+        endpoint += `since/${timeOfUnsubscription.toISOString()}`
     }
 
     fetch(endpoint)
-    .then(response => response.json())
+    .then(response => {
+        if (response.ok) {
+            return response.json()
+        }
+        throw new Error("Network response was not ok")
+    })
     .then(warningData => {    
-        console.log("[" + new Date().toISOString() + "]: Endpoint called " + endpoint)
+        console.log(`[${new Date().toISOString()}]: Endpoint called ${endpoint}`)
 
         let minSeverity = document.getElementById("severity_text_box").value
         
