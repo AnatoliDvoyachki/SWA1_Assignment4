@@ -1,6 +1,6 @@
 import { clearTable, displayWarnings, getValueFromHtmlElement } from "./view.js"
 import { filterWarningsSinceLastUpdate, filterWarningsBySeverity } from "./warningFilteringHelpers.js"
-import { map, concatMap } from "http://dev.jspm.io/rxjs@6.5.3/_esm2015/operators/index.js"
+import { concatMap } from "http://dev.jspm.io/rxjs@6.5.3/_esm2015/operators/index.js"
 import { ajax } from "http://dev.jspm.io/rxjs@6.5.3/_esm2015/ajax/index.js"
 import { interval } from "http://dev.jspm.io/rxjs@6.5.3/_esm2015/internal/observable/interval.js"                      
 
@@ -40,8 +40,9 @@ window.onOffClick = () => {
 }
 
 const subscribe = () => {
-    subscription = observable.pipe(concatMap(() => ajax.getJSON(serverWarningsUrl)), map(warnings => warnings))
-        .subscribe({ 
+    subscription = observable.pipe(
+            concatMap(() => ajax.getJSON(serverWarningsUrl))
+        ).subscribe({ 
             next: warnings => {
                 let minSeverity = getValueFromHtmlElement("severity_text_box")
                     
@@ -83,7 +84,7 @@ const showWarningData = () => {
     .then(warningData => {    
         console.log(`[${new Date().toISOString()}]: Endpoint called ${endpoint}`)
 
-        let minSeverity = getValueFromHtmlElement("severity_text_box").value
+        let minSeverity = getValueFromHtmlElement("severity_text_box")
         
         let newWarnings = filterWarningsBySeverity(warningData, minSeverity)
         let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
