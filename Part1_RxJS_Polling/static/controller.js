@@ -1,8 +1,8 @@
 import { clearTable, displayWarnings, getValueFromHtmlElement } from "./view.js"
 import { filterWarningsSinceLastUpdate, filterWarningsBySeverity } from "./warningFilteringHelpers.js"
-import { concatMap } from "http://dev.jspm.io/rxjs@6.5.3/_esm2015/operators/index.js"
-import { ajax } from "http://dev.jspm.io/rxjs@6.5.3/_esm2015/ajax/index.js"
-import { interval } from "http://dev.jspm.io/rxjs@6.5.3/_esm2015/internal/observable/interval.js"                      
+import { concatMap } from "http://dev.jspm.io/rxjs@6.5.3/_esm2015/operators/index.js" // Flattens data. Concatenates arrays
+import { ajax } from "http://dev.jspm.io/rxjs@6.5.3/_esm2015/ajax/index.js" // Http request with rxjs features. Returns observable
+import { interval } from "http://dev.jspm.io/rxjs@6.5.3/_esm2015/internal/observable/interval.js" // Emits a value
 
 const serverWarningsUrl = "http://localhost:8080/warnings/"
 
@@ -10,7 +10,7 @@ let warningsCache = []
 let timeOfUnsubscription
 let isSubscribed = false // To avoid having more than 1 subscription active
 
-let observable = interval(3000)
+let observable = interval(3000) // Emits a value every 3 seconds
 let subscription
 
 window.onload = () => {
@@ -87,7 +87,7 @@ const showWarningData = () => {
         let minSeverity = getValueFromHtmlElement("severity_text_box")
         
         let newWarnings = filterWarningsBySeverity(warningData, minSeverity)
-        let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
+        let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings) // Shows the data the subscribed user missed
         
         // Empty cache after last updated warnings have been filtered, to ensure that the next update will show valid results
         warningsCache = []
