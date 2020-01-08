@@ -8,9 +8,9 @@ const serverWarningsUrl = "http://localhost:8080/warnings/"
 
 let warningsCache = []
 let timeOfUnsubscription
-let isSubscribed = false
+let isSubscribed = false // To avoid having more than 1 subscription active
 
-let heartbeat = interval(3000)
+let observable
 
 window.onload = () => {
     showWarningData()
@@ -28,14 +28,15 @@ window.onOnClick = () => {
 
 window.onOffClick = () => {
     timeOfUnsubscription = new Date()
+    observable.unsubscribe()
     isSubscribed = false
     console.log(`[${timeOfUnsubscription.toISOString()}]: Unsubscribed`)
 }
 
 const subscribe = () => {
-    heartbeat.pipe(concatMap(() => ajax.getJSON(serverWarningsUrl)), map(warnings => warnings))
-        .subscribe(warnings => {
-            if (isSubscribed) {
+    observable = interval(3000).pipe(concatMap(() => ajax.getJSON(serverWarningsUrl)), map(warnings => warnings))
+        .subscribe({ 
+            next: warnings => {
                 let minSeverity = getValueFromHtmlElement("severity_text_box")
                     
                 let newWarnings = filterWarningsBySeverity(warnings, minSeverity)
@@ -49,9 +50,9 @@ const subscribe = () => {
                 // Remove all "old" warnings since last update
                 clearTable("changes_table")
                 displayWarnings("changes_table", changedWarnings)
-            }
-        },
-        error => console.error(error)) 
+            },
+            error: error => console.error(error)
+        }) 
 
     isSubscribed = true
 }
@@ -60,7 +61,7 @@ const subscribe = () => {
 const showWarningData = () => {
     let endpoint = serverWarningsUrl
     
-    if (timeOfUnsubscription !== null) {
+    if (timeOfUnsubscription != null) {
         endpoint += `since/${timeOfUnsubscription.toISOString()}`
     }
 
