@@ -75,7 +75,7 @@ const showWarningData = () => {
     .then(warningData => {    
         console.log(`[${new Date().toISOString()}]: Endpoint called ${endpoint}`)
 
-        let minSeverity = document.getElementById("severity_text_box").value
+        let minSeverity = getValueFromHtmlElement("severity_text_box").value
         
         let newWarnings = filterWarningsBySeverity(warningData, minSeverity)
         let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
