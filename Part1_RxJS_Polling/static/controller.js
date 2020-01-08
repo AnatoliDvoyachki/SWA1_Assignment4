@@ -1,4 +1,4 @@
-import { clearTable, displayWarnings } from "./view.js"
+import { clearTable, displayWarnings, getValueFromHtmlElement } from "./view.js"
 import { filterWarningsSinceLastUpdate, filterWarningsBySeverity } from "./warningFilteringHelpers.js"
 import { map, concatMap } from "http://dev.jspm.io/rxjs@6.5.3/_esm2015/operators/index.js"
 import { ajax } from "http://dev.jspm.io/rxjs@6.5.3/_esm2015/ajax/index.js"
@@ -36,7 +36,7 @@ const subscribe = () => {
     heartbeat.pipe(concatMap(() => ajax.getJSON(serverWarningsUrl)), map(warnings => warnings))
         .subscribe(warnings => {
             if (isSubscribed) {
-                let minSeverity = document.getElementById("severity_text_box").value
+                let minSeverity = getValueFromHtmlElement("severity_text_box")
                     
                 let newWarnings = filterWarningsBySeverity(warnings, minSeverity)
                 let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)

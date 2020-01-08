@@ -1,23 +1,21 @@
 const checkWarningSeverity = (warningData, severity) => {
-    if (warningData !== null && warningData['severity'] !== null && warningData['severity'] >= severity) {
-        return warningData
-    }
-    return null
+    return warningData !== null && warningData["severity"] !== null && warningData["severity"] >= severity
+        ? warningData
+        : null
 }
 
 const checkIfNewWarningSinceLastUpdate = (historicalWarnings, warning) => {
-    if (historicalWarnings.some(historicalWarning => warningEquals(historicalWarning, warning))) {
-        return null
-    } 
-    return warning
+    return !historicalWarnings.some(historicalWarning => warningEquals(historicalWarning, warning)) 
+        ? warning
+        : null
 }
 
 const warningEquals = (oldWarning, newWarning) => {
-    if (oldWarning === null || oldWarning['prediction'] === null) {
+    if (oldWarning === null || oldWarning["prediction"] === null) {
         return false
     }
 
-    if (newWarning === null || newWarning['prediction'] === null) {
+    if (newWarning === null || newWarning["prediction"] === null) {
         return false
     }
 
@@ -27,7 +25,7 @@ const warningEquals = (oldWarning, newWarning) => {
         && newWarning.prediction.unit === oldWarning.prediction.unit
         && newWarning.prediction.time === oldWarning.prediction.time
         && newWarning.prediction.place === oldWarning.prediction.place
-        && arraysEqual(newWarning.prediction['precipitation_types'], oldWarning.prediction['precipitation_types'])
+        && arraysEqual(newWarning.prediction["precipitation_types"], oldWarning.prediction["precipitation_types"])
 }
 
 const arraysEqual = (a, b) => {

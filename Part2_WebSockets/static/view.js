@@ -1,5 +1,5 @@
 
-const displayWarning = (tableName, warning) => {
+const displayWarningInTable = (tableName, warning) => {
     let table = document.getElementById(tableName)
 
     let row = table.insertRow();
@@ -14,21 +14,21 @@ const displayWarning = (tableName, warning) => {
     let unitCell = row.insertCell(7)
     let placeCell = row.insertCell(8)
 
-    if (warning['prediction'] !== null && warning.prediction['time'] !== null) {
+    if (warning["prediction"] !== undefined && warning.prediction["time"] !== undefined) {
         timeCell.innerHTML = warning.prediction.time;
     }
     
-    if (warning['severity'] !== null) {
+    if (warning["severity"] !== undefined) {
         severityCell.innerHTML = warning.severity
     }
 
-    if (warning !== null && warning['prediction'] !== null) {
+    if (warning !== undefined && warning["prediction"] !== undefined) {
         fromCell.innerHTML = warning.prediction.from
         toCell.innerHTML = warning.prediction.to
-        if (warning.prediction['precipitation_types'] !== null) {
+        if (warning.prediction["precipitation_types"] !== undefined) {
             precipitationTypesCell.innerHTML = warning.prediction.precipitation_types.join("\n")
         }
-        if (warning.prediction['directions'] !== null) {
+        if (warning.prediction["directions"] !== undefined) {
             directionsCell.innerHTML = warning.prediction.directions.join("\n")
         }
         typeCell.innerHTML = warning.prediction.type
@@ -38,12 +38,16 @@ const displayWarning = (tableName, warning) => {
     console.log(`${new Date().toISOString()} appended to ${tableName}: \n${JSON.stringify(warning)}`)
 }
 
-const clearTable = (tableName) => {
-    // Remove all 'old' warnings since last update
+const clearTable = tableName => {
+    // Remove all "old" warnings since last update
     let table = document.getElementById(tableName)
-    for (let i = 1;i < table.rows.length;){
+    for (let i = 1; i < table.rows.length;){
         table.deleteRow(i);
     }
 }
 
-export { displayWarning, clearTable }
+const getValueFromHtmlElement = elementId => {
+    return document.getElementById(elementId).value
+}
+
+export { displayWarningInTable, clearTable, getValueFromHtmlElement }

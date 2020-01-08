@@ -34,10 +34,10 @@ function displayWarnings(tableName, warnings) {
         severityCell.innerHTML = warning.severity
         fromCell.innerHTML = warning.prediction.from
         toCell.innerHTML = warning.prediction.to
-        if (warning.prediction["precipitation_types"] !== null) {
+        if (warning.prediction["precipitation_types"] !== undefined) {
             precipitationTypesCell.innerHTML = warning.prediction.precipitation_types.join("\n")
         }
-        if (warning.prediction["directions"] !== null) {
+        if (warning.prediction["directions"] !== undefined) {
             directionsCell.innerHTML = warning.prediction.directions.join("\n")
         }
         typeCell.innerHTML = warning.prediction.type
@@ -47,4 +47,8 @@ function displayWarnings(tableName, warnings) {
     console.log(`Appended to ${tableName}: ${JSON.stringify(warnings)}`)
 }
 
-export { displayWarnings, clearTable }
+const getValueFromHtmlElement = elementId => {
+    return document.getElementById(elementId).value
+}
+
+export { displayWarnings, clearTable, getValueFromHtmlElement }
