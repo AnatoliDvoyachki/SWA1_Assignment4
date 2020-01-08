@@ -49,7 +49,7 @@ window.onunload = () => {
         console.log(`[${new Date().toISOString()}]: Unsubscribed`)
     }
     if (socket.bufferedAmount === 0) {
-        socket.close(1001) // 1001 CLOSE_GOING_AWAY
+        socket.close(1001) // 1001 Going away
     }
 }
    
