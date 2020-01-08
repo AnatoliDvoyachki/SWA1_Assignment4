@@ -10,11 +10,17 @@ let warningsCache = []
 let timeOfUnsubscription
 let isSubscribed = false // To avoid having more than 1 subscription active
 
-let observable
+let observable = interval(3000)
+let subscription
 
 window.onload = () => {
     showWarningData()
     subscribe()
+}
+
+window.onunload = () => {
+    subscription.unsubscribe()
+    console.log(`[${new Date().toISOString()}]: Unsubscribed`)
 }
 
 window.onOnClick = () => {
@@ -28,13 +34,13 @@ window.onOnClick = () => {
 
 window.onOffClick = () => {
     timeOfUnsubscription = new Date()
-    observable.unsubscribe()
+    subscription.unsubscribe()
     isSubscribed = false
     console.log(`[${timeOfUnsubscription.toISOString()}]: Unsubscribed`)
 }
 
 const subscribe = () => {
-    observable = interval(3000).pipe(concatMap(() => ajax.getJSON(serverWarningsUrl)), map(warnings => warnings))
+    subscription = observable.pipe(concatMap(() => ajax.getJSON(serverWarningsUrl)), map(warnings => warnings))
         .subscribe({ 
             next: warnings => {
                 let minSeverity = getValueFromHtmlElement("severity_text_box")
@@ -52,9 +58,11 @@ const subscribe = () => {
                 displayWarnings("changes_table", changedWarnings)
             },
             error: error => console.error(error)
-        }) 
+        })
 
     isSubscribed = true
+    
+    console.log(`[${new Date().toISOString()}]: Subscribed`)
 }
 
 // Used for "catching up" with data missed while being unsubscribed
