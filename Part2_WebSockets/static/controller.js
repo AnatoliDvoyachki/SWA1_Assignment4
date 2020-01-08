@@ -56,7 +56,8 @@ window.onunload = () => {
 window.subscribe = () => {
     if (timeOfUnubscription !== null) {
         // Show data that has been missed since the user has unsubscribed
-        showWarningData(serverWarningsSinceUrl + timeOfUnubscription.toISOString())
+        let endpoint = `${serverWarningsSinceUrl}${timeOfUnubscription.toISOString()}`
+        showWarningData(endpoint)
         timeOfUnubscription = null
     }
 
