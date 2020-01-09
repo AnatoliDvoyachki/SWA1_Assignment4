@@ -8,7 +8,7 @@ const serverWarningsUrl = "http://localhost:8080/warnings/"
 
 let warningsCache = []
 let timeOfUnsubscription
-let isSubscribed = false // To avoid having more than 1 subscription active
+let isSubscribed = false // To avoid having more than 1 active subscription
 
 let observable = interval(3000)
 let subscription
@@ -29,7 +29,7 @@ window.onOnClick = () => {
     if (!isSubscribed) {
         subscribe()
         console.log(`[${new Date().toISOString()}]: Subscribed`)
-    } 
+    }
 }
 
 window.onOffClick = () => {
@@ -79,7 +79,7 @@ const showWarningData = () => {
         if (response.ok) {
             return response.json()
         }
-        throw new Error("Network response was not ok")
+        throw new Error(response.statusText)
     })
     .then(warningData => {    
         console.log(`[${new Date().toISOString()}]: Endpoint called ${endpoint}`)

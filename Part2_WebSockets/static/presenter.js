@@ -82,7 +82,7 @@ const showWarningData = url => {
         if (response.ok) {
             return response.json()
         }
-        throw new Error("Network response was not ok.")
+        throw new Error(response.statusText)
     })
     .then(warningData => {
         console.log(`[${new Date().toISOString()}]: Endpoint called ${url}`)
