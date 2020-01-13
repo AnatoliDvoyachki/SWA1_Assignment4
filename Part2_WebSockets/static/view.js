@@ -1,4 +1,3 @@
-
 const displayWarningInTable = (tableName, warning) => {
     let table = document.getElementById(tableName)
 
@@ -35,7 +34,7 @@ const displayWarningInTable = (tableName, warning) => {
         unitCell.innerHTML = warning.prediction.unit; 
         placeCell.innerHTML = warning.prediction.place;
     }
-    console.log(`${new Date().toISOString()} appended to ${tableName}: \n${JSON.stringify(warning)}`)
+    console.log(`[${new Date().toISOString()}]: Appended to ${tableName}: \n${JSON.stringify(warning)}`)
 }
 
 const clearTable = tableName => {

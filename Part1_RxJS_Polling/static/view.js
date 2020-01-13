@@ -1,6 +1,6 @@
 function clearTable(tableName) {
     // Remove all "old" warnings since last update
-    let table = document.getElementById(tableName)
+    const table = document.getElementById(tableName)
     for (let i = 1;i < table.rows.length;){
         table.deleteRow(i);
     }
@@ -8,7 +8,7 @@ function clearTable(tableName) {
 }
     
 function displayWarnings(tableName, warnings) {
-    let table = document.getElementById(tableName)
+    const table = document.getElementById(tableName)
     
     if (table.rows.length > 10) {
         for (let i = 1; i < table.rows.length - 1; i++) {
@@ -18,17 +18,17 @@ function displayWarnings(tableName, warnings) {
     }
 
     warnings.forEach(warning => {
-        let row = table.insertRow();
+        const row = table.insertRow();
 
-        let timeCell = row.insertCell(0);
-        let severityCell = row.insertCell(1)
-        let fromCell = row.insertCell(2);
-        let toCell = row.insertCell(3);
-        let precipitationTypesCell = row.insertCell(4);
-        let directionsCell = row.insertCell(5)
-        let typeCell = row.insertCell(6)
-        let unitCell = row.insertCell(7)
-        let placeCell = row.insertCell(8)
+        const timeCell = row.insertCell(0);
+        const severityCell = row.insertCell(1)
+        const fromCell = row.insertCell(2);
+        const toCell = row.insertCell(3);
+        const precipitationTypesCell = row.insertCell(4);
+        const directionsCell = row.insertCell(5)
+        const typeCell = row.insertCell(6)
+        const unitCell = row.insertCell(7)
+        const placeCell = row.insertCell(8)
 
         timeCell.innerHTML = warning.prediction.time;
         severityCell.innerHTML = warning.severity

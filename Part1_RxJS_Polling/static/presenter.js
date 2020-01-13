@@ -10,7 +10,7 @@ let warningsCache = []
 let timeOfUnsubscription
 let isSubscribed = false // To avoid having more than 1 active subscription
 
-let observable = interval(3000)
+const observable = interval(3000)
 let subscription
 
 window.onload = () => {
@@ -44,10 +44,10 @@ const subscribe = () => {
             concatMap(() => ajax.getJSON(serverWarningsUrl))
         ).subscribe({ 
             next: warnings => {
-                let minSeverity = getValueFromHtmlElement("severity_text_box")
+                const minSeverity = getValueFromHtmlElement("severity_text_box")
                     
-                let newWarnings = filterWarningsBySeverity(warnings, minSeverity)
-                let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
+                const newWarnings = filterWarningsBySeverity(warnings, minSeverity)
+                const changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
             
                 warningsCache = []
                 newWarnings.forEach(warning => warningsCache.push(warning))
@@ -58,7 +58,7 @@ const subscribe = () => {
                 clearTable("changes_table")
                 displayWarnings("changes_table", changedWarnings)
             },
-            error: error => console.error(error)
+            error: error => console.error(`[${new Date().toISOString()}]: ${error}`)
         })
 
     isSubscribed = true
@@ -84,10 +84,10 @@ const showWarningData = () => {
     .then(warningData => {    
         console.log(`[${new Date().toISOString()}]: Endpoint called ${endpoint}`)
 
-        let minSeverity = getValueFromHtmlElement("severity_text_box")
+        const minSeverity = getValueFromHtmlElement("severity_text_box")
         
-        let newWarnings = filterWarningsBySeverity(warningData, minSeverity)
-        let changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
+        const newWarnings = filterWarningsBySeverity(warningData, minSeverity)
+        const changedWarnings = filterWarningsSinceLastUpdate(warningsCache, newWarnings)
         
         // Empty cache after last updated warnings have been filtered, to ensure that the next update will show valid results
         warningsCache = []

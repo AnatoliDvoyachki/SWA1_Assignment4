@@ -13,17 +13,17 @@ const unsubscribeCommand = "unsubscribe"
 let warningsCache = []
 let timeOfUnubscription
 
-let socket = new WebSocket(serverSocketUrl)
+const socket = new WebSocket(serverSocketUrl)
 
 socket.onopen = () => socket.send(JSON.stringify({command: subscribeCommand }))
 
 socket.onmessage = message => {
-    let warningData = JSON.parse(message.data)
+    const warningData = JSON.parse(message.data)
     
-    let severity = getValueFromHtmlElement("severity_text_box")
+    const severity = getValueFromHtmlElement("severity_text_box")
 
-    let severeEnoughWarning = checkWarningSeverity(warningData, severity)
-    let changedWarnings = checkIfNewWarningSinceLastUpdate(warningsCache, severeEnoughWarning)
+    const severeEnoughWarning = checkWarningSeverity(warningData, severity)
+    const changedWarnings = checkIfNewWarningSinceLastUpdate(warningsCache, severeEnoughWarning)
     warningsCache.push(severeEnoughWarning)
 
     if (severeEnoughWarning !== null) {
@@ -56,7 +56,7 @@ window.onunload = () => {
 window.subscribe = () => {
     if (timeOfUnubscription !== null) {
         // Show data that has been missed since the user has unsubscribed
-        let endpoint = `${serverWarningsSinceUrl}${timeOfUnubscription.toISOString()}`
+        const endpoint = `${serverWarningsSinceUrl}${timeOfUnubscription.toISOString()}`
         showWarningData(endpoint)
         timeOfUnubscription = null
     }
@@ -87,11 +87,11 @@ const showWarningData = url => {
     .then(warningData => {
         console.log(`[${new Date().toISOString()}]: Endpoint called ${url}`)
         
-        let severity = getValueFromHtmlElement("severity_text_box")
+        const severity = getValueFromHtmlElement("severity_text_box")
         
         warningData.warnings.forEach(warning => {
-            let severeEnoughWarning = checkWarningSeverity(warning, severity)
-            let warningSinceLastUpdate = checkIfNewWarningSinceLastUpdate(warningsCache, severeEnoughWarning)
+            const severeEnoughWarning = checkWarningSeverity(warning, severity)
+            const warningSinceLastUpdate = checkIfNewWarningSinceLastUpdate(warningsCache, severeEnoughWarning)
             
             if (warningsCache.length > 30) {
                 // To avoid making the page too big
