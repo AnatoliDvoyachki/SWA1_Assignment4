@@ -2,7 +2,7 @@ import { displayWarningInTable, clearTable, getValueFromHtmlElement } from "./vi
 import { checkWarningSeverity, checkIfNewWarningSinceLastUpdate } from "./warningFilteringHelpers.js"
 
 // Weather data server urls
-const serverSocketUrl = "ws://localhost:8090/warnings"
+const serverSocketUrl = "ws://localhost:8090/warnings" //web socket protocol
 const serverWarnings = "http://localhost:8080/warnings/"
 const serverWarningsSinceUrl = "http://localhost:8080/warnings/since/"
 
@@ -15,7 +15,8 @@ let timeOfUnubscription
 
 const socket = new WebSocket(serverSocketUrl)
 
-socket.onopen = () => socket.send(JSON.stringify({command: subscribeCommand }))
+socket.onopen = () => socket.send(JSON.stringify({command: subscribeCommand })) //socket ready triggers onOpen
+// socket.send subsribes to receiving messages from the server
 
 socket.onmessage = message => {
     const warningData = JSON.parse(message.data)
@@ -49,7 +50,7 @@ window.onunload = () => {
         console.log(`[${new Date().toISOString()}]: Unsubscribed`)
     }
     if (socket.bufferedAmount === 0) {
-        socket.close(1001) // 1001 Going away
+        socket.close(1001) // 1001 Going away 
     }
 }
    
