@@ -99,5 +99,5 @@ const showWarningData = () => {
         clearTable("changes_table")
         displayWarnings("changes_table", changedWarnings)
     })
-    .catch(error => console.error(error))
+    .catch(error => console.error(`[${new Date().toISOString()}]: ${error}`))
 }
