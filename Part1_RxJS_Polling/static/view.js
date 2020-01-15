@@ -1,7 +1,7 @@
 function clearTable(tableName) {
     // Remove all "old" warnings since last update
     const table = document.getElementById(tableName)
-    for (let i = 1;i < table.rows.length;){
+    for (let i = 1; i < table.rows.length;){
         table.deleteRow(i);
     }
     console.log(`${tableName} cleared`)

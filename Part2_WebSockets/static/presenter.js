@@ -112,4 +112,5 @@ const showWarningData = url => {
             }  
         })
     })
+    .catch(error => console.error(`[${new Date().toISOString()}]: ${error}`))
 }

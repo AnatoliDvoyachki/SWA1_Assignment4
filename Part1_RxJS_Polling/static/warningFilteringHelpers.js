@@ -1,6 +1,4 @@
-const filterWarningsBySeverity = (warningData, minSeverity) => {
-    return warningData.warnings.filter(warning => warning.severity >= minSeverity)
-}
+const filterWarningsBySeverity = (warningData, minSeverity) => warningData.warnings.filter(warning => warning.severity >= minSeverity)
 
 const filterWarningsSinceLastUpdate =   (oldWarnings, newWarnings) => {
     return newWarnings.filter(newWarning => !oldWarnings.some(oldWarning => {
