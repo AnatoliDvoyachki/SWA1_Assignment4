@@ -47,8 +47,6 @@ function displayWarnings(tableName, warnings) {
     console.log(`Appended to ${tableName}: ${JSON.stringify(warnings)}`)
 }
 
-const getValueFromHtmlElement = elementId => {
-    return document.getElementById(elementId).value
-}
+const getValueFromHtmlElement = elementId => document.getElementById(elementId).value
 
 export { displayWarnings, clearTable, getValueFromHtmlElement }
